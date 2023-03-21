@@ -1,2 +1,2 @@
 # GIZ
-Solar panel calculation
+Solar panel calculator
