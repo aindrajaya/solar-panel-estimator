@@ -1,1 +1,15 @@
-Pillow==8.4.0
+numpy==1.23.5
+scipy==1.10.1
+Pillow==9.4.0
+cython==0.29.33
+matplotlib==3.7.1
+scikit-image==0.20.0
+tensorflow==2.12.0rc0 
+keras==2.12.0
+opencv-python==4.7.0.72
+h5py==3.8.0
+imgaug==0.4.0
+IPython==8.11.0
+tqdm==4.19.9
+jupyter-client==6.1.12
+jupyter-core==4.12.0
