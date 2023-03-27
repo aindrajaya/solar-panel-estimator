@@ -93,7 +93,7 @@ model.load_weights(model_path, by_name=True)
 
 class_names = ['BG', 'building'] # In our case, we have 1 class for the background, and 1 class for building
 
-xfilename = "_"
+xfilename = ""
 scale = 0
 width = 0
 length = 0
@@ -106,7 +106,7 @@ energy = 0
 capacity = 0
 max_pv = 0
 global_irradiation = 0
-# total_area = 0
+total_area = 0
 
 @app.get('/')
 async def root():
@@ -115,8 +115,6 @@ async def root():
 # POST Image
 @app.post('/uploadimage')
 async def create_upload_file(scalex:float= Form(...),widthx:float= Form(...),lengthx:float= Form(...),capacityx:float= Form(...),irradiancex:float= Form(...),efficiencyx:float= Form(...),system_lossesx:float= Form(...),file: UploadFile = File(...)):
-# async def create_upload_file(file: UploadFile = File(...)):
-    # global xfilename
     global energy, capacity,max_pv,global_irradiation,total_area,total_rooftop_area,xfilename,scale,width,length,capacitypm,irradiance,efficiency,system_losses
     xfilename = file.filename
     file_name = xfilename
@@ -132,7 +130,7 @@ async def create_upload_file(scalex:float= Form(...),widthx:float= Form(...),len
     capacity = 0
     max_pv = 0
     global_irradiation = 0
-    # total_area = 0
+    total_area = 0
     
     try:
         # Create directory for the upload files
@@ -273,7 +271,7 @@ async def create_upload_file(scalex:float= Form(...),widthx:float= Form(...),len
         efficiency_per_module = efficiencyx
         system_losses_percentage = system_lossesx
 
-        # total_area = area_in_m2(area_in_pixel, scale)
+        total_area = area_in_m2(area_in_pixel, scale)
         max_pv = number_pv_module(area_in_pixel, module_width, module_length)
         global_irradiation = global_iradiation(location_spesific_solar_irradiance, total_rooftop_area)
         energy = calculate_potential_energy(area_in_pixel,scale,location_spesific_solar_irradiance,efficiency_per_module,system_losses_percentage)
@@ -293,9 +291,9 @@ async def getImageGeneratedMask():
 
 @app.get('/potential-result')
 async def getPotential():
-    global energy,capacity,global_irradiation,max_pv,scale,width,length,capacitypm,irradiance,efficiency,system_losses
+    global energy,capacity,global_irradiation,total_area,max_pv,scale,width,length,capacitypm,irradiance,efficiency,system_losses
     # return {"data": {"potential_energy": energy, "potential_capacity": capacity, "pv_number": max_pv, "global_irradiation": global_irradiation, "total_area": total_area, "userInput": {"scale":scale,"module_width":width,"module_length":length,"capacity_per_module": capacitypm, "location_spesific_solar_irradiance": irradiance, "efficiency_per_module":efficiency, "system_losses_percentage": system_losses }}}
-    return {"data": {"potential_energy": energy, "potential_capacity": capacity, "pv_number": max_pv, "global_irradiation": global_irradiation, "userInput": {"scale":scale,"module_width":width,"module_length":length,"capacity_per_module": capacitypm, "location_spesific_solar_irradiance": irradiance, "efficiency_per_module":efficiency, "system_losses_percentage": system_losses }}}
+    return {"data": {"potential_energy": energy, "potential_capacity": capacity, "pv_number": max_pv, "global_irradiation": global_irradiation,"total_area": total_area, "userInput": {"scale":scale,"module_width":width,"module_length":length,"capacity_per_module": capacitypm, "location_spesific_solar_irradiance": irradiance, "efficiency_per_module":efficiency, "system_losses_percentage": system_losses }}}
     
 
 @app.get('/potential-resultx')
