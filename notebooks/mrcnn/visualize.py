@@ -82,7 +82,7 @@ def apply_mask(image, mask, color, alpha=0.5):
     return image
 
 def save_image(image_path, save_path, boxes, masks, class_ids, class_names,
-                      scores=None):
+                      scores=None, figsize=(16, 16), ax=None):
     """
     image_path: path to the input image
     save_path: path to save the output image
@@ -100,13 +100,15 @@ def save_image(image_path, save_path, boxes, masks, class_ids, class_names,
         print("\n*** No instances to display *** \n")
     else:
         assert boxes.shape[0] == masks.shape[-1] == class_ids.shape[0]
+    if not ax:
+        _, ax = plt.subplots(1, figsize=figsize)
 
     # Generate random colors
     colors = random_colors(N)
 
     # Show area outside image boundaries.
     height, width = image.shape[:2]
-    fig, ax = plt.subplots(1, figsize=(width/100, height/100))
+    # fig, ax = plt.subplots(1)
     ax.set_ylim(height + 10, -10)
     ax.set_xlim(-10, width + 10)
     ax.axis('off')
