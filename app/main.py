@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
 import base64
@@ -58,6 +59,21 @@ OUTPUT_EACH_BUILDING = os.path.join(ROOT_DIR, "cropimage", "hasil",)
 COLORS = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (128, 0, 0), (0, 128, 0), (0, 0, 128), (128, 128, 0), (128, 0, 128), (0, 128, 128)]
 
 app = FastAPI()
+
+# Configure CORS middleware
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "http://localhost:3000",
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class InferenceConfig(coco.CocoConfig):
     # Set batch size to 1 since we'll be running inference on
     # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
@@ -77,11 +93,11 @@ model.load_weights(model_path, by_name=True)
 
 class_names = ['BG', 'building'] # In our case, we have 1 class for the background, and 1 class for building
 
-xfilename = ""
+xfilename = "_"
 scale = 0
 width = 0
 length = 0
-capacity = 0
+capacitypm = 0
 irradiance = 0
 efficiency = 0
 system_losses = 0
@@ -90,6 +106,7 @@ energy = 0
 capacity = 0
 max_pv = 0
 global_irradiation = 0
+# total_area = 0
 
 @app.get('/')
 async def root():
@@ -100,13 +117,13 @@ async def root():
 async def create_upload_file(scalex:float= Form(...),widthx:float= Form(...),lengthx:float= Form(...),capacityx:float= Form(...),irradiancex:float= Form(...),efficiencyx:float= Form(...),system_lossesx:float= Form(...),file: UploadFile = File(...)):
 # async def create_upload_file(file: UploadFile = File(...)):
     # global xfilename
-    global energy, capacity,max_pv,global_irradiation,total_rooftop_area,xfilename,scale,width,length,capacity,irradiance,efficiency,system_losses
+    global energy, capacity,max_pv,global_irradiation,total_area,total_rooftop_area,xfilename,scale,width,length,capacitypm,irradiance,efficiency,system_losses
     xfilename = file.filename
     file_name = xfilename
     scale = scalex
     width = widthx
     length = lengthx
-    capacity = capacityx
+    capacitypm = capacityx
     irradiance = irradiancex
     efficiency = efficiencyx
     system_losses = system_lossesx
@@ -115,6 +132,7 @@ async def create_upload_file(scalex:float= Form(...),widthx:float= Form(...),len
     capacity = 0
     max_pv = 0
     global_irradiation = 0
+    # total_area = 0
     
     try:
         # Create directory for the upload files
@@ -255,6 +273,7 @@ async def create_upload_file(scalex:float= Form(...),widthx:float= Form(...),len
         efficiency_per_module = efficiencyx
         system_losses_percentage = system_lossesx
 
+        # total_area = area_in_m2(area_in_pixel, scale)
         max_pv = number_pv_module(area_in_pixel, module_width, module_length)
         global_irradiation = global_iradiation(location_spesific_solar_irradiance, total_rooftop_area)
         energy = calculate_potential_energy(area_in_pixel,scale,location_spesific_solar_irradiance,efficiency_per_module,system_losses_percentage)
@@ -274,8 +293,9 @@ async def getImageGeneratedMask():
 
 @app.get('/potential-result')
 async def getPotential():
-    global energy,capacity,global_irradiation,max_pv
-    return {"data": {"potential_energy": energy, "potential_capacity": capacity, "pv_number": max_pv, "global_irradiation": global_irradiation}}
+    global energy,capacity,global_irradiation,max_pv,scale,width,length,capacitypm,irradiance,efficiency,system_losses
+    # return {"data": {"potential_energy": energy, "potential_capacity": capacity, "pv_number": max_pv, "global_irradiation": global_irradiation, "total_area": total_area, "userInput": {"scale":scale,"module_width":width,"module_length":length,"capacity_per_module": capacitypm, "location_spesific_solar_irradiance": irradiance, "efficiency_per_module":efficiency, "system_losses_percentage": system_losses }}}
+    return {"data": {"potential_energy": energy, "potential_capacity": capacity, "pv_number": max_pv, "global_irradiation": global_irradiation, "userInput": {"scale":scale,"module_width":width,"module_length":length,"capacity_per_module": capacitypm, "location_spesific_solar_irradiance": irradiance, "efficiency_per_module":efficiency, "system_losses_percentage": system_losses }}}
     
 
 @app.get('/potential-resultx')
